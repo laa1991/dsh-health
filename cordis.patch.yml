@@ -1,0 +1,31 @@
+# dsh-health-readout bundle layer: inserts the dsh-health-readout plugin row.
+#
+# Install:
+#   dsh plugin --profile <name> add dsh-health-readout          # from npm
+#   dsh plugin --profile <name> add ./dsh-health-readout-0.1.0.tgz
+#   dsh plugin --profile <name> add <git-url>                   # prebuilt: no build step
+#
+# This plugin exports no `Config` schema, so the loader passes the block below
+# through verbatim, without validating it. That is read from the harness source,
+# not assumed:
+#     vendor/cordis/src/fiber.ts — resolveConfig()
+#       "@returns the validated config, or `config` unchanged if the runtime has no schema"
+#       body: if (!runtime.Config) return config
+# The consequence is owned rather than hidden: the loader cannot catch a mistyped
+# key, so the readout names every config key it does not recognise in its warnings.
+#
+# Every key is optional, and each has an environment-variable equivalent:
+#   DSH_HEALTH_READOUT_DATA_DIR   where readings live    (default ~/.dsh-health-readout)
+#   DSH_HEALTH_READOUT_SPEC       the declarations file  (default readings.json inside dataDir)
+#   DSH_HEALTH_READOUT_ONLY       comma-separated reading ids to evaluate
+- insert:
+    - id: dsh-health-readout
+      name: 'dsh-health-readout'
+      config:
+        # Where this plugin may read from. NEVER a DSH platform directory: DSH may
+        # rebuild its own directories on upgrade, which would take a user's
+        # readings with it.
+        dataDir: ~/.dsh-health-readout
+        # Declarations live in a file so they stay reviewable and diffable.
+        # Relative paths resolve against dataDir.
+        specFile: readings.json

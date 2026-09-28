@@ -1,0 +1,57 @@
+{
+  "_note": [
+    "Example spec for dsh-health-readout. Copy it to your data directory as readings.json",
+    "(default: ~/.dsh-health-readout/readings.json) and edit the paths to match your machine.",
+    "",
+    "Keys starting with _ are ignored. Every reading needs: id, source.kind, healthy.op, blind.",
+    "Paths are relative to the data directory unless absolute; ~ and ${dataDir} are expanded.",
+    "The plugin never writes anything — it only reads what you point it at."
+  ],
+  "version": 1,
+  "readings": [
+    {
+      "id": "heartbeat",
+      "title": "The heartbeat file was written recently",
+      "unit": "s",
+      "source": { "kind": "file-age-seconds", "path": "heartbeat.json" },
+      "healthy": { "op": "lt", "value": 600, "bad": "degraded" },
+      "blind": "Says a writer touched the file; it cannot tell whether the writer is healthy or just alive."
+    },
+    {
+      "id": "process-up",
+      "title": "The service is listening and answering",
+      "source": { "kind": "http-json-field", "url": "http://127.0.0.1:3080/healthz", "field": "status", "timeoutMs": 3000 },
+      "healthy": { "op": "eq", "value": "ok", "bad": "broken" },
+      "blind": "One request at one moment. It cannot see a service that is up but wrong."
+    },
+    {
+      "id": "queue-depth",
+      "title": "Queue depth is under the ceiling",
+      "source": { "kind": "json-field", "path": "status.json", "field": "queueDepth" },
+      "healthy": { "op": "lt", "value": 8, "bad": "degraded" },
+      "blind": "A single sample. A queue that drains and refills between samples looks identical to a quiet one."
+    },
+    {
+      "id": "memory-headroom",
+      "title": "Process memory is below the cap",
+      "unit": "MB",
+      "source": { "kind": "jsonl-last-field", "path": "metrics.jsonl", "field": "wsMb", "maxBytes": 262144 },
+      "healthy": { "op": "lt", "value": 11000, "bad": "notice" },
+      "blind": "Reads the last recorded sample, not the live process; a fast climb between samples is invisible."
+    },
+    {
+      "id": "recent-errors",
+      "title": "No ERROR lines in the recent log window",
+      "source": { "kind": "text-count", "path": "service.log", "pattern": "ERROR", "maxBytes": 131072 },
+      "healthy": { "op": "lt", "value": 1, "bad": "notice" },
+      "blind": "Counts matches inside a byte window, not the whole file — the window size is reported with the reading."
+    },
+    {
+      "id": "record-volumes",
+      "title": "At least one record file exists",
+      "source": { "kind": "dir-count", "path": ".", "suffix": ".jsonl" },
+      "healthy": { "op": "gte", "value": 1, "bad": "degraded" },
+      "blind": "Counts files, not contents: an empty-but-present file counts as present."
+    }
+  ]
+}

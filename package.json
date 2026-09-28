@@ -1,0 +1,44 @@
+{
+  "name": "dsh-health-readout",
+  "version": "0.1.0",
+  "description": "Declarative health readout for DSH: declare where to read, what counts as healthy, and which verdict each reading maps to. Read-only — it composes readings, it never becomes a new source of truth.",
+  "keywords": ["dsh-plugin", "dsh", "deepseek-harness", "health", "observability"],
+  "type": "module",
+  "license": "MIT",
+  "author": "laa1991 <285244165+laa1991@users.noreply.github.com>",
+  "homepage": "https://github.com/laa1991/dsh-health#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laa1991/dsh-health.git"
+  },
+  "bugs": {
+    "url": "https://github.com/laa1991/dsh-health/issues"
+  },
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./criteria": "./src/criteria.js",
+    "./sources": "./src/sources.js",
+    "./package.json": "./package.json"
+  },
+  "files": ["src/", "cordis.patch.yml", "README.md", "README.zh.md"],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": ">=0.0.1-rc.1 <0.1.0 || >=0.1.0-rc.1 <0.2.0-0"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "test": "node --test test/criteria.test.mjs test/sources.test.mjs test/spec.test.mjs test/readout.test.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
