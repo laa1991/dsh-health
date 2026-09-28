@@ -77,6 +77,19 @@ while blind is not a gate.
 
 ## Publishing state
 
-`dsh.bundle.patch` is declared (that is the listing requirement). The package is
-`private: true` and carries no LICENSE file until the repo name, license and
-attribution are decided — those three are upstream of any publish or listing.
+- `dsh.bundle.patch` is declared — that is what makes the repo installable via
+  `dsh plugin add`, and it is the first thing the index checks. Declaring only
+  `dsh.client` is not installable.
+- Not `private`; MIT licensed (`LICENSE`); authored as
+  `laa1991 <285244165+laa1991@users.noreply.github.com>`.
+- Repo: <https://github.com/laa1991/dsh-health>, topic `dsh-plugin`. The repo is
+  `dsh-health` while the package stays `dsh-health-readout`, because `dsh-health`
+  is already taken on npm by another account (a 0.0.1 name reservation, for the
+  same niche) — do not "fix" that mismatch.
+- Not published to npm, and nothing needs building: the index does not require an
+  npm release, and `dsh plugin --profile <name> add <git-url>` installs exactly
+  these files.
+- `@deepseek-ai/dsh-tools` is declared as an **optional peerDependency** with an
+  explicit prerelease branch. `src/tool.js`'s header carries the measurement that
+  forced that shape: a bare `*` does not match prereleases, and the harness is a
+  prerelease.
