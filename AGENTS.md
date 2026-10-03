@@ -74,6 +74,13 @@ while blind is not a gate.
 - Tail reads drop the first line **only when the byte before the window is not a
   line break**; dropping it blindly turns "one whole record in the window" into
   "no record at all".
+- `path.startsWith('~/.dsh')` is the wrong shape for "must not live in the DSH
+  platform directory": `~/.dsh-health-readout` shares that string prefix, so the
+  check fires on the correct value — and a check that fires on the correct value
+  gets loosened until it fires on nothing. Compare **segments**
+  (`path.relative(homedir(), dir)`), and prove the arm by mutation: point the
+  default at `~/.dsh/health-readout` and watch it go red. It stayed green on
+  exactly that mutation until 2026-10-04.
 
 ## Publishing state
 
@@ -93,3 +100,9 @@ while blind is not a gate.
   explicit prerelease branch. `src/tool.js`'s header carries the measurement that
   forced that shape: a bare `*` does not match prereleases, and the harness is a
   prerelease.
+- Submitted to the `awesome-dsh-plugin` index:
+  <https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/6146> (one file,
+  `data/plugins/laa1991__dsh-health.yml`; CI green on all 15 steps: stale-fork
+  guard, entry placement, README regeneration, awesome-lint, build). A green CI
+  is the precondition, not the decision — a maintainer reads the repo before
+  merging, so **the entry is not live until that PR merges**.

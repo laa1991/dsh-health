@@ -102,9 +102,12 @@ and prints the unreadable ones separately (`"Could not read" is not "fine".`).
 node --test test/criteria.test.mjs test/sources.test.mjs test/spec.test.mjs test/readout.test.mjs
 ```
 
-43 tests, no test framework and no fixtures on disk. The two arms worth knowing about: deleting a
-watched file must move the verdict to `unknown` (never leaving it at `ok`), and a deliberately
-unfalsifiable criterion (`matches: ".*"`) must be reported as such by `selftest`.
+The suite prints its own count — 46 when this line was written, so if the two disagree, this line is
+the stale one. No test framework, no fixtures on disk. The arms worth knowing about: deleting a
+watched file must move the verdict to `unknown` (never leaving it at `ok`); a deliberately
+unfalsifiable criterion (`matches: ".*"`) must be reported as such by `selftest`; and the default
+data dir **and** the one in the shipped `cordis.patch.yml` must each stay out of `~/.dsh` — each
+goes red when its own file is pointed there, which is how it was checked, not asserted.
 
 ## Limitations (stated, not hidden)
 

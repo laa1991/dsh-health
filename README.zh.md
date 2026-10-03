@@ -91,9 +91,11 @@ spec 里的相对路径相对 `dataDir` 解析；`~` 与 `${dataDir}` 会被展�
 node --test test/criteria.test.mjs test/sources.test.mjs test/spec.test.mjs test/readout.test.mjs
 ```
 
-43 条，不用测试框架、不依赖盘上夹具。两条最值得知道的臂：**删掉被观测的文件，总判定必须变
-`unknown`**（不许留在 `ok`）；以及一条故意不可伪造的判据（`matches: ".*"`）**必须被 `selftest`
-点出来**。
+套件会自己打印条数 —— 写这一行时是 **46**；两者不一致时，过时的是这一行。不用测试框架、不依赖
+盘上夹具。值得知道的臂：**删掉被观测的文件，总判定必须变 `unknown`**（不许留在 `ok`）；一条故意
+不可伪造的判据（`matches: ".*"`）**必须被 `selftest` 点出来**；以及**默认数据目录**与**随包发布的
+`cordis.patch.yml` 里那一个**，都必须待在 `~/.dsh` 之外 —— 各自被指进去时都会红（是这么验的，
+不是这么声明的）。
 
 ## 限制（写出来，不藏起来）
 

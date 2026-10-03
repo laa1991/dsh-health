@@ -2,8 +2,8 @@
 
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
+import { homedir, tmpdir } from 'node:os'
 import path from 'node:path'
 import { resolveConfig, validateReadings, loadSpec, DEFAULT_DATA_DIR, DEFAULT_SPEC_FILE, BUILTIN_SPEC } from '../src/spec.js'
 
@@ -25,7 +25,16 @@ test('resolveConfig: config beats env beats the built-in default', () => {
   assert.equal(fallback.dataDir, DEFAULT_DATA_DIR)
   assert.equal(fallback.specFile, DEFAULT_SPEC_FILE)
   assert.equal(fallback.specPath, path.join(DEFAULT_DATA_DIR, DEFAULT_SPEC_FILE))
-  assert.ok(!fallback.dataDir.startsWith(path.join(DEFAULT_DATA_DIR, '.dsh')), 'default must not sit inside a DSH platform dir')
+  // Segment-aware on purpose: `~/.dsh-health-readout` shares the *string*
+  // prefix `~/.dsh` with the platform directory, so a naive `startsWith` fires
+  // on the correct value and therefore has to be loosened until it never fires
+  // at all. This one is measured, not trimmed: with `DEFAULT_DATA_DIR` mutated
+  // to `~/.dsh/health-readout` it goes red; with the real value it stays green.
+  const rel = path.relative(homedir(), fallback.dataDir)
+  assert.ok(
+    rel !== '.dsh' && !rel.startsWith('.dsh' + path.sep),
+    `the default data dir must not sit inside the DSH platform dir (~/.dsh); got ${rel}`,
+  )
 })
 
 test('resolveConfig: `only` accepts an array or a comma-separated string', () => {
@@ -129,4 +138,21 @@ test('loadSpec: zero readings is a warning, never a silent pass', async () => {
   const res = await loadSpec(resolveConfig({ dataDir: dir }, {}))
   assert.equal(res.readings.length, 0)
   assert.ok(res.warnings.some((w) => /zero readings/.test(w)), JSON.stringify(res.warnings))
+})
+
+test('the shipped bundle patch keeps its data dir out of the DSH platform dir', async () => {
+  // `cordis.patch.yml` is the surface a real install gets: it passes `dataDir`
+  // explicitly, so for anyone who installs the bundle this value — not
+  // DEFAULT_DATA_DIR — decides where readings live. Both are checked, the same
+  // segment-aware way. Mutation check: `~/.dsh/health` in the patch goes red.
+  const patch = await readFile(new URL('../cordis.patch.yml', import.meta.url), 'utf8')
+  const all = [...patch.matchAll(/^\s*dataDir:\s*(\S+)\s*$/gm)]
+  assert.equal(all.length, 1, `cordis.patch.yml must declare exactly one dataDir, found ${all.length}`)
+  const declared = all[0][1]
+  assert.ok(declared.startsWith('~/'), `dataDir must be home-relative, got ${declared}`)
+  const rel = declared.slice(2)
+  assert.ok(
+    rel !== '.dsh' && !rel.startsWith('.dsh/') && !rel.startsWith('.dsh\\'),
+    `the shipped dataDir must not sit inside the DSH platform dir (~/.dsh); got ${declared}`,
+  )
 })
