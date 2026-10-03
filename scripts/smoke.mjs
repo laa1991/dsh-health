@@ -2,7 +2,9 @@
 //
 // This is the verification that the plain `node --test` suite cannot give: that
 // the tool surface itself is acceptable — registration, parameters, output value,
-// render. Measured 2026-09-28: 10/10 PASS.
+// render. The count of arms is printed by the run itself, on the last line —
+// this header used to carry a number ("10/10", 2026-09-28) and the number rotted
+// while the run did not, so a count here would be one more thing to re-check.
 //
 // Prerequisite — make `@deepseek-ai/dsh-tools` resolvable from THIS package:
 //   junction  node_modules/@deepseek-ai/dsh-tools  ->  <dsh checkout>/packages/core/tools
@@ -58,8 +60,10 @@ await writeFile(path.join(dir, 'service.log'), 'INFO all good\n', 'utf8')
 const captured = []
 const ctx = { tools: { register: (tool) => captured.push(tool) } }
 let failures = 0
+let checks = 0
 
 function check(label, ok, detail = '') {
+  checks += 1
   if (!ok) failures += 1
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}${detail ? `  — ${detail}` : ''}`)
 }
@@ -117,5 +121,5 @@ try {
 }
 
 console.log('')
-console.log(failures === 0 ? 'SMOKE OK' : `SMOKE FAILED (${failures} check(s))`)
+console.log(failures === 0 ? `SMOKE OK (${checks} arms)` : `SMOKE FAILED (${failures}/${checks} arms)`)
 process.exitCode = failures === 0 ? 0 : 1
